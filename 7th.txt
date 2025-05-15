@@ -1,0 +1,101 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX_REQUESTS 100
+
+void sort(int arr[], int n) {
+    for (int i=0; i<n-1; i++) {
+        for (int j=0; j<n-i-1; j++) {
+            if(arr[j] > arr[j+1]) {
+                int temp = arr[j];
+                arr[j] = arr[j+1];
+                arr[j+1] = temp;
+            }
+        }
+    }
+}
+
+int main() {
+    int n, head, disk_size, direction;
+    int requests[MAX_REQUESTS];
+    
+    printf("Enter total number of disk requests: ");
+    scanf("%d", &n);
+
+    printf("Enter the disk request queue: ");
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &requests[i]);
+    }
+
+    printf("Enter initial head position: ");
+    scanf("%d", &head);
+
+    printf("Enter disk size (max track number): ");
+    scanf("%d", &disk_size);
+
+    printf("Enter direction of head movement (0 for left, 1 for right): ");
+    scanf("%d", &direction);
+
+    // Add the head position as part of the requests to simplify processing
+    int seek_sequence[n+2];
+    int idx = 0;
+
+    // Sort the requests
+    sort(requests, n);
+
+    // Find the division point where head fits in the sorted request queue
+    int i;
+    for (i = 0; i < n; i++) {
+        if (requests[i] > head)
+            break;
+    }
+
+    int seek_count = 0;
+    int cur_head = head;
+    
+    printf("Seek Sequence: %d ", head);
+
+    if (direction == 1) {  // moving towards higher track numbers
+        // service requests to the right of head
+        for (int j = i; j < n; j++) {
+            seek_count += abs(requests[j] - cur_head);
+            cur_head = requests[j];
+            printf("-> %d ", cur_head);
+        }
+        // go to end of disk if not already there
+        if (cur_head != disk_size - 1) {
+            seek_count += abs((disk_size - 1) - cur_head);
+            cur_head = disk_size - 1;
+            printf("-> %d ", cur_head);
+        }
+        // reverse direction: service requests to the left of head
+        for (int j = i - 1; j >= 0; j--) {
+            seek_count += abs(requests[j] - cur_head);
+            cur_head = requests[j];
+            printf("-> %d ", cur_head);
+        }
+    } else {  // moving towards lower track numbers
+        // service requests to the left of head
+        for (int j = i - 1; j >= 0; j--) {
+            seek_count += abs(requests[j] - cur_head);
+            cur_head = requests[j];
+            printf("-> %d ", cur_head);
+        }
+        // go to beginning of disk if not already there
+        if (cur_head != 0) {
+            seek_count += abs(cur_head - 0);
+            cur_head = 0;
+            printf("-> %d ", cur_head);
+        }
+        // reverse direction: service requests to the right of head
+        for (int j = i; j < n; j++) {
+            seek_count += abs(requests[j] - cur_head);
+            cur_head = requests[j];
+            printf("-> %d ", cur_head);
+        }
+    }
+
+    printf("\nTotal seek time = %d\n", seek_count);
+
+    return 0;
+}

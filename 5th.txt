@@ -1,0 +1,120 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define DISK_SIZE 50   // Total disk blocks
+
+int disk[DISK_SIZE];    // 0 means free, 1 means occupied
+
+// Function to display disk block status
+void displayDisk() {
+    printf("Disk Blocks Status:\n");
+    for (int i = 0; i < DISK_SIZE; i++) {
+        printf("%d", disk[i]);
+    }
+    printf("\n");
+}
+
+// Sequential Allocation
+int sequentialAllocation(int file_size, int *start_block) {
+    int count = 0;
+    for (int i = 0; i < DISK_SIZE; i++) {
+        if (disk[i] == 0) {
+            count++;
+        } else {
+            count = 0;
+        }
+
+        if (count == file_size) {
+            *start_block = i - file_size + 1;
+            // Mark blocks occupied
+            for (int j = *start_block; j <= i; j++) {
+                disk[j] = 1;
+            }
+            return 1; // success
+        }
+    }
+    return 0; // failure - no contiguous space
+}
+
+// Linked Allocation
+typedef struct LinkedFile {
+    int blocks[DISK_SIZE];  // store allocated blocks
+    int size;
+} LinkedFile;
+
+int linkedAllocation(int file_size, LinkedFile *file) {
+    int allocated = 0;
+    for (int i = 0; i < DISK_SIZE && allocated < file_size; i++) {
+        if (disk[i] == 0) {
+            disk[i] = 1;
+            file->blocks[allocated] = i;
+            allocated++;
+        }
+    }
+    if (allocated == file_size) {
+        file->size = file_size;
+        return 1; // success
+    } else {
+        // Rollback if allocation fails
+        for (int k = 0; k < allocated; k++) {
+            disk[file->blocks[k]] = 0;
+        }
+        return 0; // failure
+    }
+}
+
+void displayLinkedFile(LinkedFile *file) {
+    printf("Linked File Blocks: ");
+    for (int i = 0; i < file->size; i++) {
+        printf("%d ", file->blocks[i]);
+    }
+    printf("\n");
+}
+
+int main() {
+    int choice, size, start_block;
+    LinkedFile lfile;
+
+    // Initialize disk free
+    for (int i = 0; i < DISK_SIZE; i++) disk[i] = 0;
+
+    while (1) {
+        printf("\nFile Allocation Strategies\n");
+        printf("1. Sequential Allocation\n");
+        printf("2. Linked Allocation\n");
+        printf("3. Display Disk Status\n");
+        printf("4. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+        case 1:
+            printf("Enter file size: ");
+            scanf("%d", &size);
+            if (sequentialAllocation(size, &start_block)) {
+                printf("File allocated sequentially from block %d to %d\n", start_block, start_block + size - 1);
+            } else {
+                printf("Sequential allocation failed: no contiguous space available\n");
+            }
+            break;
+        case 2:
+            printf("Enter file size: ");
+            scanf("%d", &size);
+            if (linkedAllocation(size, &lfile)) {
+                printf("File allocated using linked allocation.\n");
+                displayLinkedFile(&lfile);
+            } else {
+                printf("Linked allocation failed: insufficient free blocks\n");
+            }
+            break;
+        case 3:
+            displayDisk();
+            break;
+        case 4:
+            exit(0);
+        default:
+            printf("Invalid choice\n");
+        }
+    }
+    return 0;
+}

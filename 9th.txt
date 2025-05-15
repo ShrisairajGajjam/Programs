@@ -1,0 +1,67 @@
+#include <stdio.h>
+
+#define NUM_PROCESSES 5
+#define BLOCK_SIZE 100
+
+void MFT(int process_sizes[]) {
+    printf("\n--- MFT (Multiple Fixed-sized Partitions) ---\n");
+
+    int internal_frag = 0;
+    for (int i = 0; i < NUM_PROCESSES; i++) {
+        printf("Process %d size: %d\n", i + 1, process_sizes[i]);
+        if (process_sizes[i] > BLOCK_SIZE) {
+            printf("Process %d size exceeds block size (%d). Cannot allocate.\n", i + 1, BLOCK_SIZE);
+        } else {
+            int frag = BLOCK_SIZE - process_sizes[i];
+            internal_frag += frag;
+            printf("Process %d allocated with internal fragmentation: %d\n", i + 1, frag);
+        }
+    }
+    printf("Total Internal Fragmentation in MFT: %d\n", internal_frag);
+}
+
+void MVT(int process_sizes[], int blocks[]) {
+    printf("\n--- MVT (Multiple Variable-sized Partitions) ---\n");
+
+    int internal_frag = 0;
+    for (int i = 0; i < NUM_PROCESSES; i++) {
+        int block_size = blocks[i];
+        printf("Process %d size: %d, Block allocated size: %d\n", i + 1, process_sizes[i], block_size);
+        if (process_sizes[i] > block_size) {
+            printf("Process %d size exceeds allocated block size (%d). Cannot allocate.\n", i + 1, block_size);
+        } else {
+            int frag = block_size - process_sizes[i];
+            internal_frag += frag;
+            printf("Process %d allocated with internal fragmentation: %d\n", i + 1, frag);
+        }
+    }
+    printf("Total Internal Fragmentation in MVT: %d\n", internal_frag);
+}
+
+int main() {
+    int process_sizes[NUM_PROCESSES];
+    int blocks[NUM_PROCESSES];
+
+    printf("Enter sizes of 5 processes:\n");
+    for (int i = 0; i < NUM_PROCESSES; i++) {
+        printf("Process %d size: ", i + 1);
+        scanf("%d", &process_sizes[i]);
+    }
+
+    // For MFT, fixed block size 100, so no input needed for blocks
+    
+    // For MVT, ask user to enter block sizes for each process
+    printf("\nFor MVT (Variable-sized partitions), enter block size allocated for each process:\n");
+    for (int i = 0; i < NUM_PROCESSES; i++) {
+        printf("Block size for Process %d: ", i + 1);
+        scanf("%d", &blocks[i]);
+        if (blocks[i] < process_sizes[i]) {
+            printf("Warning: Block size less than process size, allocation not possible for Process %d\n", i + 1);
+        }
+    }
+
+    MFT(process_sizes);
+    MVT(process_sizes, blocks);
+
+    return 0;
+}

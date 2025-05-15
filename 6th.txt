@@ -1,0 +1,59 @@
+#include <stdio.h>
+
+#define MAX_REF_LEN 100
+
+// Function to check if a page is in frame
+int isInFrame(int frame[], int size, int page) {
+    for (int i = 0; i < size; i++) {
+        if (frame[i] == page) return 1;
+    }
+    return 0;
+}
+
+// FIFO page replacement function
+int fifoPageReplacement(int reference[], int ref_len, int frame_size) {
+    int frame[frame_size];
+    int front = 0;   // Points to the oldest page
+    int page_faults = 0;
+    int count = 0;   // Number of pages currently in frame
+
+    for (int i = 0; i < frame_size; i++)
+        frame[i] = -1;  // Initialize frames as empty
+
+    printf("\nFIFO Page Replacement for Frame Size = %d\n", frame_size);
+    printf("Ref\tFrames\n");
+    for (int i = 0; i < ref_len; i++) {
+        printf("%d\t", reference[i]);
+        if (!isInFrame(frame, frame_size, reference[i])) {
+            // Page fault occurs
+            page_faults++;
+            frame[front] = reference[i];
+            front = (front + 1) % frame_size;
+        }
+        // Print current frame status
+        for (int j = 0; j < frame_size; j++) {
+            if (frame[j] == -1)
+                printf("- ");
+            else
+                printf("%d ", frame[j]);
+        }
+        printf("\n");
+    }
+    return page_faults;
+}
+
+int main() {
+    int reference_stream[] = {1,2,3,4,1,2,5,1,2,3,4,5};
+    int ref_len = sizeof(reference_stream) / sizeof(reference_stream[0]);
+
+    int frames[] = {3, 4};
+    int num_frames = sizeof(frames) / sizeof(frames[0]);
+
+    for (int i = 0; i < num_frames; i++) {
+        int faults = fifoPageReplacement(reference_stream, ref_len, frames[i]);
+        printf("Total Page Faults with frame size %d: %d\n", frames[i], faults);
+        printf("----------------------------------------\n");
+    }
+
+    return 0;
+}
